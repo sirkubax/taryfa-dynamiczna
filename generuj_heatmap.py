@@ -38,9 +38,23 @@ def generate_heatmap(csv_file: str):
     # Create heatmap
     fig, ax = plt.subplots(figsize=(14, 10))
     
-    # Ustal zakres kolorów: zielony 0-400, żółty-czerwony powyżej
-    # Ujemne ceny będą ciemnozielone (poniżej skali)
-    im = ax.imshow(pivot.values, aspect='auto', cmap='RdYlGn_r', vmin=-100, vmax=800)
+    # Niestandardowa paleta kolorów:
+    # fioletowy (ujemne) -> zielony (0-400) -> żółty (400-600) -> czerwony (>600)
+    from matplotlib.colors import LinearSegmentedColormap
+    colors = [
+        (0.5, 0.0, 0.5),    # fioletowy dla ujemnych (-100)
+        (0.0, 0.5, 0.0),    # ciemnozielony (0)
+        (0.0, 0.8, 0.0),    # zielony (200)
+        (0.5, 1.0, 0.0),    # żółtozielony (400)
+        (1.0, 1.0, 0.0),    # żółty (500)
+        (1.0, 0.5, 0.0),    # pomarańczowy (600)
+        (1.0, 0.0, 0.0),    # czerwony (800)
+    ]
+    # Pozycje kolorów w zakresie 0-1 (mapowane na -100 do 800)
+    positions = [0.0, 0.111, 0.333, 0.556, 0.667, 0.778, 1.0]
+    cmap = LinearSegmentedColormap.from_list('custom_rdn', list(zip(positions, colors)))
+    
+    im = ax.imshow(pivot.values, aspect='auto', cmap=cmap, vmin=-100, vmax=800)
     
     # Set labels
     ax.set_xticks(np.arange(24))
@@ -61,12 +75,13 @@ def generate_heatmap(csv_file: str):
         for j in range(24):
             val = pivot.values[i, j]
             if not np.isnan(val):
-                # Ujemne ceny - biały tekst na ciemnozielonym tle
-                # Zielony dla < 500 - czarny tekst
-                # Żółty/czerwony dla > 500 - biały tekst
+                # Fioletowy (ujemne) - biały tekst
+                # Zielony (0-400) - czarny tekst
+                # Żółty (400-600) - czarny tekst
+                # Pomarańczowy/czerwony (>600) - biały tekst
                 if val < 0:
                     text_color = 'white'
-                elif val > 500:
+                elif val > 600:
                     text_color = 'white'
                 else:
                     text_color = 'black'
