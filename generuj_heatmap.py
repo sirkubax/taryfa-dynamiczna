@@ -32,6 +32,9 @@ def generate_heatmap(csv_file: str):
     month_name = calendar.month_name[month]
     month_str = f"{year}-{month:02d}"
     
+    # Obsłuż duplikaty (np. zmiana czasu - 25h w październiku) - bierzemy średnią
+    df = df.groupby(['day', 'hour_from'], as_index=False).agg({'price_pln_per_mwh': 'mean'})
+    
     # Pivot table: days as rows, hours as columns
     pivot = df.pivot(index='day', columns='hour_from', values='price_pln_per_mwh')
     
