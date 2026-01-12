@@ -69,8 +69,9 @@ def fetch_day(d: date, url_template: str):
             
             rows.append((h_from, h_to, price, vol))
 
-    if len(rows) != 24:
-        raise RuntimeError(f"{d}: expected 24 rows, got {len(rows)} (page format may have changed)")
+    # Akceptuj 23, 24 lub 25 godzin (zmiana czasu letni/zimowy)
+    if len(rows) not in (23, 24, 25):
+        raise RuntimeError(f"{d}: expected 23-25 rows, got {len(rows)} (page format may have changed)")
 
     return rows
 
